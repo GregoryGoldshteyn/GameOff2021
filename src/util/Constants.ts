@@ -4,8 +4,8 @@ namespace Constants {
 
     export const GAME_CONFIG = {
         type: Phaser.WEBGL,
-        width: 960,
-        height: 540,
+        width: Global.SCREEN_WIDTH,
+        height: Global.SCREEN_HEIGHT,
         parent: 'game-div',
         pixelArt: true,
         dom: {
