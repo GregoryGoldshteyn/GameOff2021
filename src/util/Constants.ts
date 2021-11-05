@@ -23,11 +23,10 @@ namespace Constants {
             arcade: {
                 gravity: { y: 0 },
                 debug: false,
-                debugShowBody: true,
-                debugShowStaticBody: true
+                debugShowBody: false,
+                debugShowStaticBody: false
             }
         },
-        scene: [GameScene.LightTesting],
-        pipeline: {pipeline: Pipelines.PixelatedFX}
+        scene: [GameScene.LightTesting]
     };
 }
