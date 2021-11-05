@@ -3,6 +3,7 @@ namespace Game {
         constructor() {
             // Init using config
             super(
+                //@ts-ignore
                 Constants.GAME_CONFIG
             );
 

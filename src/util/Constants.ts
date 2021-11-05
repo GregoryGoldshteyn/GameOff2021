@@ -2,10 +2,13 @@ namespace Constants {
     export const MAIN_MENU_SCENE_NAME = 'MainMenuScene';
     export const LIGHT_TEST_SCENE_NAME = 'LightTestScene';
 
+    export const SCREEN_WIDTH = 960;
+    export const SCREEN_HEIGHT = 540;
+
     export const GAME_CONFIG = {
         type: Phaser.WEBGL,
-        width: Global.SCREEN_WIDTH,
-        height: Global.SCREEN_HEIGHT,
+        width: SCREEN_WIDTH,
+        height: SCREEN_HEIGHT,
         parent: 'game-div',
         pixelArt: true,
         dom: {
@@ -24,6 +27,7 @@ namespace Constants {
                 debugShowStaticBody: true
             }
         },
-        scene: [GameScene.MainMenu, GameScene.LightTesting]
+        scene: [GameScene.LightTesting],
+        pipeline: {pipeline: Pipelines.PixelatedFX}
     };
 }
