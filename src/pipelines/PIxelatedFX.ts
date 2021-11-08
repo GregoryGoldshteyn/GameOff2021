@@ -73,7 +73,7 @@ namespace Pipelines {
 
         void main()
         {
-            vec2 pixelSize = vec2(8.0, 8.0);
+            vec2 pixelSize = vec2(2.0, 2.0);
             vec2 dimensions = vec2(960.0, 540.0);
             vec2 size = dimensions.xy / pixelSize;
             vec2 color = floor((outTexCoord * size)) / size + pixelSize/dimensions.xy * 0.5;

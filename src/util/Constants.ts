@@ -1,6 +1,7 @@
 namespace Constants {
     export const MAIN_MENU_SCENE_NAME = 'MainMenuScene';
     export const LIGHT_TEST_SCENE_NAME = 'LightTestScene';
+    export const DICE_TEST_SCENE_NAME = 'DiceTestScene';
 
     export const SCREEN_WIDTH = 960;
     export const SCREEN_HEIGHT = 540;
@@ -27,6 +28,6 @@ namespace Constants {
                 debugShowStaticBody: false
             }
         },
-        scene: [GameScene.LightTesting]
+        scene: [GameScene.DiceTesting]
     };
 }
