@@ -153,9 +153,6 @@ var GameScene;
                 gameObject.x = dragX;
                 gameObject.y = dragY;
             });
-            testDie.on('dragend', function (foo, bar, baz) {
-                this.startRolling = true;
-            });
         };
         DiceTesting.prototype.update = function (time, delta) {
             //console.log(Math.log(time));
@@ -267,6 +264,12 @@ var Constants;
     Constants.DICE_TEST_SCENE_NAME = 'DiceTestScene';
     Constants.SCREEN_WIDTH = 960;
     Constants.SCREEN_HEIGHT = 540;
+    Constants.COLORS = {
+        DARK: new Phaser.Display.Color(27, 3, 38),
+        RED: new Phaser.Display.Color(122, 28, 75),
+        ORANGE: new Phaser.Display.Color(186, 80, 68),
+        WHITE: new Phaser.Display.Color(239, 249, 214),
+    };
     Constants.GAME_CONFIG = {
         type: Phaser.WEBGL,
         width: Constants.SCREEN_WIDTH,
@@ -307,8 +310,12 @@ var Util;
             _this.currframe = 0;
             _this.generateThresholds();
             _this.currThreshold = _this.thresholds.length;
+            _this.on('dragend', _this.onDragend);
             return _this;
         }
+        Die.prototype.onDragend = function () {
+            this.startRolling = true;
+        };
         Die.prototype.update = function (time, delta) {
             if (this.startRolling) {
                 this.startTime = time;
