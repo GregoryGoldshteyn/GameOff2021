@@ -19,6 +19,7 @@ namespace Constants {
         height: SCREEN_HEIGHT,
         parent: 'game-div',
         pixelArt: true,
+        backgroundColor: COLORS.DARK,
         dom: {
             createContainer: true
         },

@@ -276,6 +276,7 @@ var Constants;
         height: Constants.SCREEN_HEIGHT,
         parent: 'game-div',
         pixelArt: true,
+        backgroundColor: Constants.COLORS.DARK,
         dom: {
             createContainer: true
         },
