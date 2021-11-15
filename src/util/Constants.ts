@@ -6,12 +6,33 @@ namespace Constants {
     export const SCREEN_WIDTH = 960;
     export const SCREEN_HEIGHT = 540;
 
+    export const SCREEN_MIDDLE = {
+        X: SCREEN_WIDTH / 2,
+        Y: SCREEN_HEIGHT / 2
+    }
+
     export const COLORS = {
         DARK: new Phaser.Display.Color(27, 3, 38),
         RED: new Phaser.Display.Color(122, 28, 75),
         ORANGE: new Phaser.Display.Color(186, 80, 68),
         WHITE: new Phaser.Display.Color(239, 249, 214),
     }
+
+    export const FONT_TEXT = "ABCDEFGHIJKLMNOPQRSTUVWXYZ!?:;0123456789\"(),-.' ";
+
+    // The text terminal can fit at most 18 chars
+    export const TEXT_TERMINAL_MAX_WIDTH = 18;
+
+    export const FONT_CONFIG = {
+        image: '5pxFont',
+        width: 6,
+        height: 5,
+        chars: FONT_TEXT,
+        charsPerRow: 4,
+        spacing: {x : 0, y : 0},
+        offset: {x : 0, y : 0},
+        linespacing: 1
+    };
 
     export const GAME_CONFIG = {
         type: Phaser.WEBGL,

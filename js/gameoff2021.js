@@ -133,13 +133,26 @@ var GameScene;
             return _super.call(this, sceneName) || this;
         }
         DiceTesting.prototype.preload = function () {
-            this.load.spritesheet('D7', 'assets/sprites/D7.png', { frameWidth: 16 });
+            // Load sprites
+            this.load.setPath('assets/sprites/');
+            this.load.spritesheet('D7', 'D7.png', { frameWidth: 16 });
+            this.load.image('UIBackground', 'UIBack.png');
+            this.load.image('Town', 'Town.png');
+            this.load.image('5pxFont', 'Font.png');
         };
         DiceTesting.prototype.create = function () {
+            // Add font to cache
+            //@ts-ignore
+            this.cache.bitmapFont.add('5pxFont', Phaser.GameObjects.RetroFont.Parse(this, Constants.FONT_CONFIG));
             this.cameras.main.removeBounds();
+            var background = this.add.image(Constants.SCREEN_MIDDLE.X, Constants.SCREEN_MIDDLE.Y, 'UIBackground').setScale(4);
+            var town = this.add.image(246, 244, 'Town').setScale(4);
             //var testDie = this.add.sprite(Constants.SCREEN_WIDTH / 2, Constants.SCREEN_HEIGHT / 2, 'D7').setScale(4).setInteractive();
             //var testDie2 = this.add.sprite(Constants.SCREEN_WIDTH / 2, Constants.SCREEN_HEIGHT / 2, 'D7').setScale(4).setInteractive();
-            var testDie = new Util.Die(this, Constants.SCREEN_WIDTH / 2, Constants.SCREEN_HEIGHT / 2).setScale(4);
+            var testDie = new Util.Die(this, Constants.SCREEN_MIDDLE.X, Constants.SCREEN_MIDDLE.Y).setScale(4);
+            var testText = this.add.bitmapText(248, 490, "5pxFont", "THE QUICK BROWN DO");
+            var terminal = this.add.existing(new Util.TextTerminal(this, testText));
+            testText.setOrigin(0.5, 0.5).setScale(4);
             console.log(testDie);
             testDie.setInteractive();
             this.input.setDraggable(testDie);
@@ -264,11 +277,28 @@ var Constants;
     Constants.DICE_TEST_SCENE_NAME = 'DiceTestScene';
     Constants.SCREEN_WIDTH = 960;
     Constants.SCREEN_HEIGHT = 540;
+    Constants.SCREEN_MIDDLE = {
+        X: Constants.SCREEN_WIDTH / 2,
+        Y: Constants.SCREEN_HEIGHT / 2
+    };
     Constants.COLORS = {
         DARK: new Phaser.Display.Color(27, 3, 38),
         RED: new Phaser.Display.Color(122, 28, 75),
         ORANGE: new Phaser.Display.Color(186, 80, 68),
         WHITE: new Phaser.Display.Color(239, 249, 214),
+    };
+    Constants.FONT_TEXT = "ABCDEFGHIJKLMNOPQRSTUVWXYZ!?:;0123456789\"(),-.' ";
+    // The text terminal can fit at most 18 chars
+    Constants.TEXT_TERMINAL_MAX_WIDTH = 18;
+    Constants.FONT_CONFIG = {
+        image: '5pxFont',
+        width: 6,
+        height: 5,
+        chars: Constants.FONT_TEXT,
+        charsPerRow: 4,
+        spacing: { x: 0, y: 0 },
+        offset: { x: 0, y: 0 },
+        linespacing: 1
     };
     Constants.GAME_CONFIG = {
         type: Phaser.WEBGL,
@@ -353,6 +383,54 @@ var Util;
         return Die;
     }(Phaser.GameObjects.Sprite));
     Util.Die = Die;
+})(Util || (Util = {}));
+var Util;
+(function (Util) {
+    var TextTerminal = /** @class */ (function (_super) {
+        __extends(TextTerminal, _super);
+        function TextTerminal(scene, textBox) {
+            var _this = _super.call(this, scene, 'TextTerminal') || this;
+            _this.currentPhraseIndex = 0;
+            _this.currText = "                   ";
+            _this.phrases = [
+                " --- THERE ONCE WAS A MAN WHO LIVED IN A SHOE",
+                " --- SOMEONE POISONED THE WATERING HOLE!",
+                " --- WAR! WHAT IS IT GOOD FOR?",
+                " --- Sphinx of black quartz, judge my vow"
+            ];
+            // Number of updates needed to scroll 1 character
+            _this.updatesPerScroll = 4;
+            _this.currentUpdateCount = 0;
+            _this.textBox = textBox;
+            return _this;
+        }
+        TextTerminal.prototype.preUpdate = function () {
+            if (this.currentUpdateCount >= this.updatesPerScroll) {
+                this.getNextTextChars();
+                this.currentUpdateCount = 0;
+            }
+            else {
+                this.currentUpdateCount += 1;
+            }
+        };
+        TextTerminal.prototype.getNextPhrase = function () {
+            var r = Math.floor(Math.random() * this.phrases.length);
+            while (r == this.currentPhraseIndex) {
+                r = Math.floor(Math.random() * this.phrases.length);
+            }
+            this.currentPhraseIndex = r;
+            return this.phrases[r];
+        };
+        TextTerminal.prototype.getNextTextChars = function () {
+            this.currText = this.currText.slice(1);
+            this.textBox.setText(this.currText.slice(0, 18).toUpperCase());
+            if (this.currText.length <= 18) {
+                this.currText += this.getNextPhrase();
+            }
+        };
+        return TextTerminal;
+    }(Phaser.GameObjects.GameObject));
+    Util.TextTerminal = TextTerminal;
 })(Util || (Util = {}));
 var Util;
 (function (Util) {
