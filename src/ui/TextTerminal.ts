@@ -1,4 +1,4 @@
-namespace Util {
+namespace UI {
     export class TextTerminal extends Phaser.GameObjects.GameObject {
         textBox : Phaser.GameObjects.BitmapText;
         currentPhraseIndex = 0;

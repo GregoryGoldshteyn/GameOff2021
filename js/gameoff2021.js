@@ -139,6 +139,7 @@ var GameScene;
             this.load.image('UIBackground', 'UIBack.png');
             this.load.image('Town', 'Town.png');
             this.load.image('5pxFont', 'Font.png');
+            this.load.image('Event', "Event.png");
         };
         DiceTesting.prototype.create = function () {
             // Add font to cache
@@ -147,11 +148,16 @@ var GameScene;
             this.cameras.main.removeBounds();
             var background = this.add.image(Constants.SCREEN_MIDDLE.X, Constants.SCREEN_MIDDLE.Y, 'UIBackground').setScale(4);
             var town = this.add.image(246, 244, 'Town').setScale(4);
+            var event = this.add.image(0, 0, 'Event').setScale(4);
+            var eventContainer = this.add.container(246, 244);
+            eventContainer.add(event);
             //var testDie = this.add.sprite(Constants.SCREEN_WIDTH / 2, Constants.SCREEN_HEIGHT / 2, 'D7').setScale(4).setInteractive();
             //var testDie2 = this.add.sprite(Constants.SCREEN_WIDTH / 2, Constants.SCREEN_HEIGHT / 2, 'D7').setScale(4).setInteractive();
             var testDie = new Util.Die(this, Constants.SCREEN_MIDDLE.X, Constants.SCREEN_MIDDLE.Y).setScale(4);
-            var testText = this.add.bitmapText(248, 490, "5pxFont", "THE QUICK BROWN DO");
-            var terminal = this.add.existing(new Util.TextTerminal(this, testText));
+            var eventTitle = this.add.bitmapText(44, 48, "5pxFont", "EVENT").setScale(4).setMaxWidth(420).setTint(Constants.COLORS.ORANGE.color32);
+            var eventDescription = this.add.bitmapText(44, 80, "5pxFont", "SOME EXAMPLE TEXT").setScale(2).setMaxWidth(420).setTint(Constants.COLORS.WHITE.color32);
+            var testText = this.add.bitmapText(248, 490, "5pxFont", "THE QUICK BROWN DO").setTint(Constants.COLORS.WHITE.color32);
+            var terminal = this.add.existing(new UI.TextTerminal(this, testText));
             testText.setOrigin(0.5, 0.5).setScale(4);
             console.log(testDie);
             testDie.setInteractive();
@@ -165,6 +171,10 @@ var GameScene;
             this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
                 gameObject.x = dragX;
                 gameObject.y = dragY;
+            });
+            this.input.on('dragend', function (pointer, gameObject, dragX, dragY) {
+                var intersects = Phaser.Geom.Rectangle.Overlaps(gameObject.getBounds(), event.getBounds());
+                console.log(intersects);
             });
         };
         DiceTesting.prototype.update = function (time, delta) {
@@ -226,6 +236,54 @@ var GameScene;
     }(GameScene.SceneBase));
     GameScene.MainMenu = MainMenu;
 })(GameScene || (GameScene = {}));
+var UI;
+(function (UI) {
+    var TextTerminal = /** @class */ (function (_super) {
+        __extends(TextTerminal, _super);
+        function TextTerminal(scene, textBox) {
+            var _this = _super.call(this, scene, 'TextTerminal') || this;
+            _this.currentPhraseIndex = 0;
+            _this.currText = "                   ";
+            _this.phrases = [
+                " --- THERE ONCE WAS A MAN WHO LIVED IN A SHOE",
+                " --- SOMEONE POISONED THE WATERING HOLE!",
+                " --- WAR! WHAT IS IT GOOD FOR?",
+                " --- Sphinx of black quartz, judge my vow"
+            ];
+            // Number of updates needed to scroll 1 character
+            _this.updatesPerScroll = 4;
+            _this.currentUpdateCount = 0;
+            _this.textBox = textBox;
+            return _this;
+        }
+        TextTerminal.prototype.preUpdate = function () {
+            if (this.currentUpdateCount >= this.updatesPerScroll) {
+                this.getNextTextChars();
+                this.currentUpdateCount = 0;
+            }
+            else {
+                this.currentUpdateCount += 1;
+            }
+        };
+        TextTerminal.prototype.getNextPhrase = function () {
+            var r = Math.floor(Math.random() * this.phrases.length);
+            while (r == this.currentPhraseIndex) {
+                r = Math.floor(Math.random() * this.phrases.length);
+            }
+            this.currentPhraseIndex = r;
+            return this.phrases[r];
+        };
+        TextTerminal.prototype.getNextTextChars = function () {
+            this.currText = this.currText.slice(1);
+            this.textBox.setText(this.currText.slice(0, 18).toUpperCase());
+            if (this.currText.length <= 18) {
+                this.currText += this.getNextPhrase();
+            }
+        };
+        return TextTerminal;
+    }(Phaser.GameObjects.GameObject));
+    UI.TextTerminal = TextTerminal;
+})(UI || (UI = {}));
 var Colors;
 (function (Colors) {
     Colors.R_BROWN_0 = new Phaser.Display.Color(59, 32, 39);
@@ -383,54 +441,6 @@ var Util;
         return Die;
     }(Phaser.GameObjects.Sprite));
     Util.Die = Die;
-})(Util || (Util = {}));
-var Util;
-(function (Util) {
-    var TextTerminal = /** @class */ (function (_super) {
-        __extends(TextTerminal, _super);
-        function TextTerminal(scene, textBox) {
-            var _this = _super.call(this, scene, 'TextTerminal') || this;
-            _this.currentPhraseIndex = 0;
-            _this.currText = "                   ";
-            _this.phrases = [
-                " --- THERE ONCE WAS A MAN WHO LIVED IN A SHOE",
-                " --- SOMEONE POISONED THE WATERING HOLE!",
-                " --- WAR! WHAT IS IT GOOD FOR?",
-                " --- Sphinx of black quartz, judge my vow"
-            ];
-            // Number of updates needed to scroll 1 character
-            _this.updatesPerScroll = 4;
-            _this.currentUpdateCount = 0;
-            _this.textBox = textBox;
-            return _this;
-        }
-        TextTerminal.prototype.preUpdate = function () {
-            if (this.currentUpdateCount >= this.updatesPerScroll) {
-                this.getNextTextChars();
-                this.currentUpdateCount = 0;
-            }
-            else {
-                this.currentUpdateCount += 1;
-            }
-        };
-        TextTerminal.prototype.getNextPhrase = function () {
-            var r = Math.floor(Math.random() * this.phrases.length);
-            while (r == this.currentPhraseIndex) {
-                r = Math.floor(Math.random() * this.phrases.length);
-            }
-            this.currentPhraseIndex = r;
-            return this.phrases[r];
-        };
-        TextTerminal.prototype.getNextTextChars = function () {
-            this.currText = this.currText.slice(1);
-            this.textBox.setText(this.currText.slice(0, 18).toUpperCase());
-            if (this.currText.length <= 18) {
-                this.currText += this.getNextPhrase();
-            }
-        };
-        return TextTerminal;
-    }(Phaser.GameObjects.GameObject));
-    Util.TextTerminal = TextTerminal;
 })(Util || (Util = {}));
 var Util;
 (function (Util) {
