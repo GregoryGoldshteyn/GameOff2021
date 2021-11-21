@@ -1,0 +1,11 @@
+[
+    {
+        "title": "Dice event",
+        "type": "diceEvent",
+        "debug": true,
+        "description": "This is the description of the event",
+        "threshold": 7,
+        "onSuccess" : [],
+        "onFailure" : []
+    }
+]

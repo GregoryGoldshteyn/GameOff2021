@@ -14,9 +14,9 @@ namespace UI {
         updatesPerScroll = 4;
         currentUpdateCount = 0;
 
-        constructor(scene, textBox : Phaser.GameObjects.BitmapText) {
+        constructor(scene) {
             super(scene, 'TextTerminal');
-            this.textBox = textBox;
+            this.textBox = scene.add.bitmapText(248, 490, "5pxFont", "                  ").setTint(Constants.COLORS.WHITE.color32).setOrigin(0.5, 0.5).setScale(4);
         }
 
         preUpdate() {

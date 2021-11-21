@@ -26,7 +26,7 @@ namespace Constants {
     export const FONT_CONFIG = {
         image: '5pxFont',
         width: 6,
-        height: 5,
+        height: 6,
         chars: FONT_TEXT,
         charsPerRow: 4,
         spacing: {x : 0, y : 0},

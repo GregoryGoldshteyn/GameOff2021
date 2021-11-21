@@ -139,27 +139,28 @@ var GameScene;
             this.load.image('UIBackground', 'UIBack.png');
             this.load.image('Town', 'Town.png');
             this.load.image('5pxFont', 'Font.png');
-            this.load.image('Event', "Event.png");
+            this.load.image('EventBody', "Event.png");
+            // Load events + messages
+            this.load.setPath('assets/json/');
+            this.load.json("events", "events.json");
         };
         DiceTesting.prototype.create = function () {
             // Add font to cache
             //@ts-ignore
             this.cache.bitmapFont.add('5pxFont', Phaser.GameObjects.RetroFont.Parse(this, Constants.FONT_CONFIG));
             this.cameras.main.removeBounds();
+            // Add the town
             var background = this.add.image(Constants.SCREEN_MIDDLE.X, Constants.SCREEN_MIDDLE.Y, 'UIBackground').setScale(4);
             var town = this.add.image(246, 244, 'Town').setScale(4);
-            var event = this.add.image(0, 0, 'Event').setScale(4);
-            var eventContainer = this.add.container(246, 244);
-            eventContainer.add(event);
-            //var testDie = this.add.sprite(Constants.SCREEN_WIDTH / 2, Constants.SCREEN_HEIGHT / 2, 'D7').setScale(4).setInteractive();
-            //var testDie2 = this.add.sprite(Constants.SCREEN_WIDTH / 2, Constants.SCREEN_HEIGHT / 2, 'D7').setScale(4).setInteractive();
-            var testDie = new Util.Die(this, Constants.SCREEN_MIDDLE.X, Constants.SCREEN_MIDDLE.Y).setScale(4);
-            var eventTitle = this.add.bitmapText(44, 48, "5pxFont", "EVENT").setScale(4).setMaxWidth(420).setTint(Constants.COLORS.ORANGE.color32);
-            var eventDescription = this.add.bitmapText(44, 80, "5pxFont", "SOME EXAMPLE TEXT").setScale(2).setMaxWidth(420).setTint(Constants.COLORS.WHITE.color32);
-            var testText = this.add.bitmapText(248, 490, "5pxFont", "THE QUICK BROWN DO").setTint(Constants.COLORS.WHITE.color32);
-            var terminal = this.add.existing(new UI.TextTerminal(this, testText));
-            testText.setOrigin(0.5, 0.5).setScale(4);
-            console.log(testDie);
+            // Add the first die
+            var testDie = new UI.Die(this, Constants.SCREEN_MIDDLE.X, Constants.SCREEN_MIDDLE.Y).setScale(4);
+            // Add the news terminal
+            var terminal = this.add.existing(new UI.TextTerminal(this));
+            // Add event object
+            var eventObj = new UI.Event(this);
+            console.log(this.cache.json.get("events"));
+            eventObj.setUIForEvent(this.cache.json.get("events")[0]);
+            // Add draggable to dice
             testDie.setInteractive();
             this.input.setDraggable(testDie);
             this.add.existing(testDie);
@@ -173,8 +174,15 @@ var GameScene;
                 gameObject.y = dragY;
             });
             this.input.on('dragend', function (pointer, gameObject, dragX, dragY) {
-                var intersects = Phaser.Geom.Rectangle.Overlaps(gameObject.getBounds(), event.getBounds());
-                console.log(intersects);
+                var intersects = Phaser.Geom.Rectangle.Overlaps(gameObject.getBounds(), eventObj.diceRect.getBounds());
+                if (intersects) {
+                    var num = parseInt(eventObj.countText.text);
+                    num -= gameObject.getValue();
+                    eventObj.countText.setText(num.toString());
+                }
+                else {
+                    gameObject.startRolling = true;
+                }
             });
         };
         DiceTesting.prototype.update = function (time, delta) {
@@ -238,9 +246,99 @@ var GameScene;
 })(GameScene || (GameScene = {}));
 var UI;
 (function (UI) {
+    var Die = /** @class */ (function (_super) {
+        __extends(Die, _super);
+        function Die(scene, x, y) {
+            var _this = _super.call(this, scene, x, y, 'D7') || this;
+            _this.startRolling = false;
+            _this.isRolling = false;
+            _this.startTime = 0;
+            _this.currThreshold = 0;
+            _this.thresholds = [];
+            _this.accum = 0;
+            _this.currframe = 0;
+            _this.generateThresholds();
+            _this.currThreshold = _this.thresholds.length;
+            return _this;
+            //this.on('dragend', this.onDragend);
+        }
+        Die.prototype.onDragend = function () {
+            this.startRolling = true;
+        };
+        Die.prototype.update = function (time, delta) {
+            if (this.startRolling) {
+                this.startTime = time;
+                this.currThreshold = 0;
+                this.startRolling = false;
+            }
+            if (this.currThreshold < this.thresholds.length) {
+                var nextThreshold = this.getNextThreshold(time - this.startTime);
+                if (nextThreshold > this.currThreshold) {
+                    this.currThreshold = nextThreshold;
+                    this.rollToNext();
+                }
+            }
+        };
+        Die.prototype.getValue = function () {
+            return 7 - this.currframe;
+        };
+        Die.prototype.rollToNext = function () {
+            this.currframe = (this.currframe + Math.ceil(Math.random() * 6)) % 7;
+            this.setFrame(this.currframe);
+        };
+        Die.prototype.getNextThreshold = function (timePassed) {
+            for (var i = 0; i < this.thresholds.length; i += 1) {
+                if (this.thresholds[i] > timePassed) {
+                    return i;
+                }
+            }
+            return this.thresholds.length;
+        };
+        Die.prototype.generateThresholds = function () {
+            var num = 2;
+            var top = Math.pow(2, 10);
+            for (var i = 2, j = 1; i <= Math.pow(2, 10); i = Math.pow(2, j), j += 0.5) {
+                this.thresholds.push(i);
+            }
+        };
+        return Die;
+    }(Phaser.GameObjects.Sprite));
+    UI.Die = Die;
+})(UI || (UI = {}));
+var UI;
+(function (UI) {
+    var Event = /** @class */ (function () {
+        function Event(scene) {
+            // The background
+            this.eventBody = scene.add.image(0, 0, 'EventBody').setScale(4);
+            // Text of the event
+            this.eventTitle = scene.add.bitmapText(-200, -198, "5pxFont", "EVENT").setScale(4).setMaxWidth(420).setTint(Constants.COLORS.ORANGE.color32);
+            this.eventDescription = scene.add.bitmapText(-200, -168, "5pxFont", "SOME EXAMPLE TEXT").setScale(2).setMaxWidth(420).setTint(Constants.COLORS.WHITE.color32);
+            // The dice count
+            this.countText = scene.add.bitmapText(-130, 138, "5pxFont", "8").setOrigin(0.5, 0.5).setScale(16).setCenterAlign().setLetterSpacing(-2);
+            this.diceRect = scene.add.rectangle(-6, 138, 120, 84, Constants.COLORS.DARK.color, 0.0).setOrigin(0.5, 0.5);
+            this.eventContainer = scene.add.container(246, 244);
+            this.eventContainer.add(this.eventBody);
+            this.eventContainer.add(this.eventTitle);
+            this.eventContainer.add(this.eventDescription);
+            this.eventContainer.add(this.diceRect);
+            this.eventContainer.add(this.countText);
+        }
+        Event.prototype.setUIForEvent = function (event) {
+            console.log(event.title);
+            this.eventTitle.setText(event.title.toUpperCase());
+            this.eventDescription.setText(event.description.toUpperCase());
+            this.countText.setText(event.threshold.toString());
+        };
+        return Event;
+    }());
+    UI.Event = Event;
+})(UI || (UI = {}));
+var UI;
+(function (UI) {
     var TextTerminal = /** @class */ (function (_super) {
         __extends(TextTerminal, _super);
-        function TextTerminal(scene, textBox) {
+        function TextTerminal(scene) {
             var _this = _super.call(this, scene, 'TextTerminal') || this;
             _this.currentPhraseIndex = 0;
             _this.currText = "                   ";
@@ -253,7 +351,7 @@ var UI;
             // Number of updates needed to scroll 1 character
             _this.updatesPerScroll = 4;
             _this.currentUpdateCount = 0;
-            _this.textBox = textBox;
+            _this.textBox = scene.add.bitmapText(248, 490, "5pxFont", "                  ").setTint(Constants.COLORS.WHITE.color32).setOrigin(0.5, 0.5).setScale(4);
             return _this;
         }
         TextTerminal.prototype.preUpdate = function () {
@@ -351,7 +449,7 @@ var Constants;
     Constants.FONT_CONFIG = {
         image: '5pxFont',
         width: 6,
-        height: 5,
+        height: 6,
         chars: Constants.FONT_TEXT,
         charsPerRow: 4,
         spacing: { x: 0, y: 0 },
@@ -384,64 +482,6 @@ var Constants;
         scene: [GameScene.DiceTesting]
     };
 })(Constants || (Constants = {}));
-var Util;
-(function (Util) {
-    var Die = /** @class */ (function (_super) {
-        __extends(Die, _super);
-        function Die(scene, x, y) {
-            var _this = _super.call(this, scene, x, y, 'D7') || this;
-            _this.startRolling = false;
-            _this.isRolling = false;
-            _this.startTime = 0;
-            _this.currThreshold = 0;
-            _this.thresholds = [];
-            _this.accum = 0;
-            _this.currframe = 0;
-            _this.generateThresholds();
-            _this.currThreshold = _this.thresholds.length;
-            _this.on('dragend', _this.onDragend);
-            return _this;
-        }
-        Die.prototype.onDragend = function () {
-            this.startRolling = true;
-        };
-        Die.prototype.update = function (time, delta) {
-            if (this.startRolling) {
-                this.startTime = time;
-                this.currThreshold = 0;
-                this.startRolling = false;
-            }
-            if (this.currThreshold < this.thresholds.length) {
-                var nextThreshold = this.getNextThreshold(time - this.startTime);
-                if (nextThreshold > this.currThreshold) {
-                    this.currThreshold = nextThreshold;
-                    this.rollToNext();
-                }
-            }
-        };
-        Die.prototype.rollToNext = function () {
-            this.currframe = (this.currframe + Math.ceil(Math.random() * 6)) % 7;
-            this.setFrame(this.currframe);
-        };
-        Die.prototype.getNextThreshold = function (timePassed) {
-            for (var i = 0; i < this.thresholds.length; i += 1) {
-                if (this.thresholds[i] > timePassed) {
-                    return i;
-                }
-            }
-            return this.thresholds.length;
-        };
-        Die.prototype.generateThresholds = function () {
-            var num = 2;
-            var top = Math.pow(2, 10);
-            for (var i = 2, j = 1; i <= Math.pow(2, 10); i = Math.pow(2, j), j += 0.5) {
-                this.thresholds.push(i);
-            }
-        };
-        return Die;
-    }(Phaser.GameObjects.Sprite));
-    Util.Die = Die;
-})(Util || (Util = {}));
 var Util;
 (function (Util) {
     function colorToHexString(c) {

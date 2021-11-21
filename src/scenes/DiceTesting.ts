@@ -12,7 +12,11 @@ namespace GameScene {
             this.load.image('UIBackground', 'UIBack.png');
             this.load.image('Town', 'Town.png');
             this.load.image('5pxFont', 'Font.png',);
-            this.load.image('Event', "Event.png");
+            this.load.image('EventBody', "Event.png");
+
+            // Load events + messages
+            this.load.setPath('assets/json/');
+            this.load.json("events", "events.json");
         }
 
         create() {
@@ -21,30 +25,24 @@ namespace GameScene {
             this.cache.bitmapFont.add('5pxFont', Phaser.GameObjects.RetroFont.Parse(this, Constants.FONT_CONFIG))
             this.cameras.main.removeBounds();
 
+            // Add the town
             var background = this.add.image(Constants.SCREEN_MIDDLE.X, Constants.SCREEN_MIDDLE.Y, 'UIBackground').setScale(4);
             var town = this.add.image(246, 244, 'Town').setScale(4);
-            var event = this.add.image(0, 0, 'Event').setScale(4);
 
-            var eventContainer = this.add.container(246, 244);
+            // Add the first die
+            var testDie = new UI.Die(this, Constants.SCREEN_MIDDLE.X, Constants.SCREEN_MIDDLE.Y).setScale(4);
 
-            eventContainer.add(event);
+            // Add the news terminal
+            var terminal = this.add.existing(new UI.TextTerminal(this));
 
-            //var testDie = this.add.sprite(Constants.SCREEN_WIDTH / 2, Constants.SCREEN_HEIGHT / 2, 'D7').setScale(4).setInteractive();
+            // Add event object
+            var eventObj = new UI.Event(this);
 
-            //var testDie2 = this.add.sprite(Constants.SCREEN_WIDTH / 2, Constants.SCREEN_HEIGHT / 2, 'D7').setScale(4).setInteractive();
-            var testDie = new Util.Die(this, Constants.SCREEN_MIDDLE.X, Constants.SCREEN_MIDDLE.Y).setScale(4);
+            console.log(this.cache.json.get("events"));
 
-            var eventTitle = this.add.bitmapText(44, 48, "5pxFont", "EVENT").setScale(4).setMaxWidth(420).setTint(Constants.COLORS.ORANGE.color32);
-            var eventDescription = this.add.bitmapText(44, 80, "5pxFont", "SOME EXAMPLE TEXT").setScale(2).setMaxWidth(420).setTint(Constants.COLORS.WHITE.color32);
+            eventObj.setUIForEvent(this.cache.json.get("events")[0]);
 
-            var testText = this.add.bitmapText(248, 490, "5pxFont", "THE QUICK BROWN DO").setTint(Constants.COLORS.WHITE.color32);
-
-            var terminal = this.add.existing(new UI.TextTerminal(this, testText));
-
-            testText.setOrigin(0.5, 0.5).setScale(4);
-
-            console.log(testDie);
-
+            // Add draggable to dice
             testDie.setInteractive();
             this.input.setDraggable(testDie);
 
@@ -65,10 +63,17 @@ namespace GameScene {
             this.input.on('dragend', function (pointer, gameObject, dragX, dragY) {
                 var intersects = Phaser.Geom.Rectangle.Overlaps(
                     gameObject.getBounds(),
-                    event.getBounds()
+                    eventObj.diceRect.getBounds()
                 );
 
-                console.log(intersects);
+                if(intersects) {
+                    var num = parseInt(eventObj.countText.text);
+                    num -= gameObject.getValue();
+                    eventObj.countText.setText(num.toString());
+                }
+                else {
+                    gameObject.startRolling = true
+                }
             });
         }
 

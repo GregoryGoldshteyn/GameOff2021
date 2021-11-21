@@ -1,4 +1,4 @@
-namespace Util {
+namespace UI {
     export class Die extends Phaser.GameObjects.Sprite {
         startRolling = false;
         isRolling = false;
@@ -13,7 +13,7 @@ namespace Util {
             this.generateThresholds();
             this.currThreshold = this.thresholds.length;
 
-            this.on('dragend', this.onDragend);
+            //this.on('dragend', this.onDragend);
         }
 
         onDragend() {
@@ -34,6 +34,10 @@ namespace Util {
                     this.rollToNext();
                 }
             }
+        }
+
+        getValue(){
+            return 7 - this.currframe;
         }
 
         rollToNext(){
